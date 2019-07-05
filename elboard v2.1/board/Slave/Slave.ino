@@ -8,7 +8,7 @@ VescUart UART;
 DNSServer DNS;
 
 //pin layout (output)
-#define flight 2
+#define flight 4
 #define rlight 15
 
 //value settings
@@ -27,18 +27,18 @@ DNSServer DNS;
 #define bbpower 10        //maximálna hodnota brzdiaceho prúdu, mod 1/2
 
 //variable settings
-byte x = 0;               //počiatočný stav info (0-6)
-byte modes = 1;           //počiatočná hodnota mode (1-4)
-int joy = mid;            //počiatočné nutné nastavenie stredu
-
+int x = 0;               //počiatočný stav info (0-6)
+int modes = 1;           //počiatočná hodnota mode (1-4)
+           
 //variable definition
 bool vali, valk, vall, hold, t, b, i, k, l, m, controller, usedcheck;                               //controller do byte , ak chcem full acces mode
-byte hh, mm;
-int s, v, bpower;
-float dmodes = modes;                                                                               //modes pre počítanie s float hodnotami
+int s, v, bpower, mm, hh;
+int joy = mid;                                                                                      //počiatočné nastavenie stredu
 float vduty, vvolt, vamp, vtach, vrpm, modelimit, holdchange, speed, dist, dutysaved, w, c, u, q;
-unsigned long holdclock, throtle, braking, oldtime, delaytime;
-String timer, message;
+float dmodes = modes;                                                                               //modes pre počítanie s float hodnotami
+unsigned long holdclock, throtle, oldtime, delaytime;                                               //millis() timers
+String timer = "00:00";                                                                             //prvotné zobrazenie
+String message;
 String messages = message;
 
 //connection settings 
@@ -216,7 +216,7 @@ void statusprinter() { //phone - info bar
     message = "Current: "+String(vamp)+" A";
   }
   else if (x == 3) {
-    speed = vrpm/38*3.14159265359*0.000075*60;
+    speed = vrpm/7*0.375*3.14159265359*0.000075*60 //erpm / pólové dvojice motora (7)* prevodový pomer (18/48 - 0.375)* pi (3.14...) * velkosť kolesa v km (0.000075) * konštanta 60 min
     message = "Speed: "+String(speed)+" km/h";
   } 
   else if (x == 4) {
@@ -224,7 +224,7 @@ void statusprinter() { //phone - info bar
     message = "Power: "+String(vduty)+" %";
   }
   else if (x == 5) {
-    dist = vtach/38*3.14159265359*0.000075;
+    dist = vtach/7*0.375*3.14159265359*0.000075;  //erpm tachometer / pólové dvojice motora (7)* prevodový pomer (18/48 - 0.375)* pi (3.14...) * velkosť kolesa v km (0.000075)
     message = "Distance: "+String(dist)+" km";
   }
   else if (x == 6) {
@@ -247,9 +247,9 @@ void phonecontrol() { //phone - control motor
         u = dmodes * 5;
       }
       if (vali == 0) {
-        UART.setCurrent(-u); //forward
+        UART.setCurrent(u); //forward
       } else if (vali == 1) {
-        UART.setCurrent(u); //backward
+        UART.setCurrent(-u); //backward
       }
     } else if (t == 0 && b == 1) {
         if (modes >= 3) c = hbpower;
@@ -286,29 +286,11 @@ void OnDataRecv(const uint8_t *mac_addr, const uint16_t data[6], int data_len) {
 
     if (data[2] == 1 && m == 0 && (d < joy && joy < h) && vduty < dutydead) {
       m = 1;
-      modes = modes + 1;
+      modes++;
       if (modes >= 5) {
         modes = 1;
       }
       dmodes = modes;
-      if (modes <= 2) {
-        ledcWrite(1, 0);
-        delay(50);
-        ledcWrite(1,255);
-        delay(50);
-        ledcWrite(1, 0);
-      }
-      if (modes >= 3) {
-        ledcWrite(1, 0);
-        delay(50);
-        ledcWrite(1,255);
-        delay(50);
-        ledcWrite(1, 0);
-        delay(50);
-        ledcWrite(1,255);
-        delay(50);
-        ledcWrite(1, 0);
-      }
     }
     if (data[2] == 0) {
       m = 0;
@@ -346,12 +328,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint16_t data[6], int data_len) {
     usedcheck = 1;
     Serial.println("connected"); 
   }
-
-  Serial.print("delay: ");
-  Serial.println(millis() - delaytime);
-
   delaytime = millis();
-
 }
 
 void handcontrol() { //hand - control motor
@@ -361,16 +338,19 @@ void handcontrol() { //hand - control motor
     if (modes <= 2) holdchange = dholdchange;
 
     if (joy >= h) {                               //hold +
+      v = joyres - mid;
+      s = joy - mid;
       q = map(s , 0, v, 0, holdchange*1000);
       q = q / 1000;
       if (millis() - holdclock >= 250) {
-        if (vali == 1) dutysaved += q;
-        if (vali == 0) dutysaved -= q;
+        if (vali == 1) dutysaved -= q;
+        if (vali == 0) dutysaved += q;
         holdclock = millis();
       }
     }
 
     if (joy <= d) {                                //hold -
+      w =  d - joy;
       q = map(w , 0, d, 0, holdchange*1000);
       q = q / 1000;
       if (millis() - holdclock >= 250) {
@@ -403,9 +383,9 @@ void handcontrol() { //hand - control motor
     }
 
     if (vali == 0) {
-      UART.setCurrent(-u); //forward
+      UART.setCurrent(u); //forward
     } else if (vali == 1) {
-      UART.setCurrent(u);  //backward
+      UART.setCurrent(-u);  //backward
     }
   }
 
@@ -413,6 +393,7 @@ void handcontrol() { //hand - control motor
 
     if (modes >= 3) bpower = hbpower;
     if (modes <= 2) bpower = bbpower;
+
     w =  d - joy;
     c = map(w, 0, d, 0, bpower * 100);
     c = c / 100;
@@ -422,13 +403,18 @@ void handcontrol() { //hand - control motor
   
   if (joy > d && joy < h && hold == 0) {      //neutral
 
-    dutysaved = vduty;
     c = 0;
     w = 0;
     u = 0;
     s = 0;
 
     UART.setCurrent(0);
+  }
+
+  if (hold == 0) {
+
+    dutysaved = vduty;
+ 
   }
 }
 
@@ -456,16 +442,16 @@ void lights() { //board - lights
 
 void vescvalues() { //board - vescvalues
   if ( UART.getVescValues() ) {
-    vduty = abs(UART.data.dutyCycleNow);
-    // if (vduty < 0) {
-    //   vduty = -vduty;
-    // }
+    vduty = UART.data.dutyCycleNow;
+    if (vduty < 0) {
+      vduty = -vduty;
+    }
     vvolt = UART.data.inpVoltage;
     vtach = UART.data.tachometerAbs;
-    vrpm = abs(UART.data.rpm);
-    // if (vrpm < 0) {
-    //   vrpm = -vrpm;
-    // }
+    vrpm = UART.data.rpm;
+    if (vrpm < 0) {
+      vrpm = -vrpm;
+    }
     vamp = UART.data.avgInputCurrent;
   }
 }
@@ -490,18 +476,18 @@ void setup() {
 
   DNS.start(DNS_PORT, "*", apIP);
 
-  ESPUI.label("Info", COLOR_CARROT, "Mode: 1");
+  ESPUI.label("Info", COLOR_CARROT, message);
   ESPUI.pad("Control", true, &control, COLOR_WETASPHALT);
   ESPUI.switcher("Forward / Backward", false, &direction, COLOR_PETERRIVER);
   ESPUI.switcher("Front Light", false, &frontlight, COLOR_SUNFLOWER);
   ESPUI.switcher("Rear Light", false, &rearlight, COLOR_ALIZARIN);
   ESPUI.text("Command", &command, COLOR_EMERALD, "");
   ESPUI.begin("El Board");
-
-  oldtime = millis(); // - 60000
+  
+  oldtime = millis();
   throtle = millis();
-  braking = millis();
   holdclock = millis();
+  delaytime = millis();
 
   Serial2.begin(115200);
   UART.setSerialPort(&Serial2);
@@ -517,8 +503,6 @@ void loop() {
     Serial.print("delay: ");
     Serial.println(millis() - delaytime);
     Serial.println("reloading . . .");
-  } else if (usedcheck == 0) {
-    Serial.println("reloading . . .");
   }
 
   DNS.processNextRequest(); //phone - web control
@@ -529,5 +513,5 @@ void loop() {
   handcontrol();
   lights();
   statusprinter();
-  
+
 }
