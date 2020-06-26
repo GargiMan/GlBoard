@@ -45,8 +45,8 @@ void ScanForSlave() {
       if (SSID.indexOf(boardname) == 0) {
         int mac[6];
         if ( 6 == sscanf(BSSIDstr.c_str(), "%x:%x:%x:%x:%x:%x%c",  &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5] ) ) {
-          for (int ii = 0; ii < 6; ++ii ) {
-            slave.peer_addr[ii] = (uint8_t) mac[ii];
+          for (int j = 0; j < 6; ++j ) {
+            slave.peer_addr[j] = (uint8_t) mac[j];
           }
         }
         slave.channel = CHANNEL; // pick a channel
@@ -167,22 +167,8 @@ void loop() {
   delay(2);
   powersleep();
 
-
-
-  //debug
-  // Serial.print(data[0]);
-  // Serial.print("   ");
-  // Serial.print(data[1]);
-  // Serial.print(data[2]);
-  // Serial.print(data[3]);
-  // Serial.print(data[4]);
-  // Serial.print(data[5]);
-
   // if (reset == 1) {
   //   Serial.print("  ");
   //   Serial.print((afktime-(millis()-oldtime))/1000);
   // }
-
-  // Serial.println(" ");
-
 }
