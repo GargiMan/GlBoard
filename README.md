@@ -1,2 +1,2 @@
 # elboard
-Electronic longboard based on VESC and ESP32 to ESP32 (ESPNOW) communication , phone control included
+Electric longboard based on VESC and ESP32 (ESPNOW) or Arduino with NRF24 communication , phone control included
