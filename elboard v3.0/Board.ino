@@ -1,18 +1,26 @@
+// Elboard code
+// Author: Gargi
+
+
+//code settings
+#define UPLOAD_DEVICE 0                     //Device where code will be uploaded, 0 = board / 1 = controller
 
 
 //port and vesc settings
-#define DEFAULT_PORT_SPEED 115200        //Default comm and vesc speed , need to be defined for any communication
-#define COMM_PORT Serial1                //Usb comm port , no comm if comented
-#define VESC Vesc                        //Vesc prefix
-#define VESC_CONTROL_PORT Serial2        //Vesc control , default port speed or custom
-//#define VESC_DEBUG_PORT Serial1          //Vesc debug , default port speed
-//#define VESC_CONTROL_PORT_SPEED 115200   //Vesc control speed
+#define DEFAULT_PORT_SPEED 115200           //Default comm and vesc speed , need to be defined for any communication
+#define COMM_PORT Serial1                   //Usb comm port , no comm if comented
+#define VESC Vesc                           //Vesc prefix
+#define VESC_CONTROL_PORT Serial2           //Vesc control , default port speed or custom
+//#define VESC_DEBUG_PORT Serial1             //Vesc debug , default port speed
+//#define VESC_CONTROL_PORT_SPEED 115200      //Vesc control speed
+
 
 //lights settings
-//#define FLIGHT_PIN 4                    //Front light pin
-//#define FLIGHT_POWER 1.0            //intenzita svietenia flight (stála) , 0 - 1
-//#define RLIGHT_PIN 15                   //Rear light pin
-//#define RLIGHT_POWER 0.4            //intenzita svietenia rlight (stála) , 0 - 1
+//#define FLIGHT_PIN 4                        //Front light pin
+//#define FLIGHT_POWER 1.0                    //intenzita svietenia flight (stála) , 0 - 1
+//#define RLIGHT_PIN 15                       //Rear light pin
+//#define RLIGHT_POWER 0.4                    //intenzita svietenia rlight (stála) , 0 - 1
+
 
 //controller settings
 #define JOY_DEAD_APPROX 0.05        //deadzone rýchlosti
@@ -28,26 +36,41 @@
 #define JOY_BRAKE_POWER_L 10        //maximálna hodnota brzdiaceho prúdu, mod 1/2
 
 
+#if DEVICE_UPLOAD == 0
+
+#include "VescUart.h"
+
+#elif DEVICE_UPLOAD == 1
+
+#include <driver/adc.h>
+
+#endif // DEVICE_UPLOAD
+
+
 void setup() {
 
     //Usb comm
     #ifdef COMM_PORT
         COMM_PORT.begin(DEFAULT_PORT_SPEED);
-    #endif
+    #endif // COMM_PORT
 
     //Vesc port check and setup
     #ifdef VESC_CONTROL_PORT
+
         #ifdef VESC_CONTROL_PORT_SPEED
             VESC_CONTROL_PORT.begin(CONTROL_PORT_SPEED);
-        #else
+        #else // VESC_CONTROL_PORT_SPEED
             VESC_CONTROL_PORT.begin(DEFAULT_PORT_SPEED);
-        #endif
+        #endif // VESC_CONTROL_PORT_SPEED
+
         VESC.setSerialPort(&VESC_CONTROL_PORT);
+
         #ifdef VESC_DEBUG_PORT
             VESC_DEBUG_PORT.begin(DEFAULT_PORT_SPEED);
             VESC.setDebugPort(&DEBUG_PORT);
-        #endif 
-    #endif
+        #endif // VESC_DEBUG_PORT
+
+    #endif // VESC_CONTROL_PORT
 
     //Front light setup
     #ifdef FLIGHT_PIN
