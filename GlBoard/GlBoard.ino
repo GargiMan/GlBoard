@@ -25,7 +25,13 @@ void setup() {
 
     //Usb comm
     #ifdef DEBUG_PORT
-        DEBUG_PORT.begin(DEFAULT_PORT_SPEED);
+
+        #ifdef defined(DEFAULT_PORT_SPEED)
+            DEBUG_PORT.begin(DEFAULT_PORT_SPEED);
+        #else // DEFAULT_PORT_SPEED
+            DEBUG_PORT.begin(9600);
+        #endif // DEFAULT_PORT_SPEED
+        
     #endif // DEBUG_PORT
 
     #if (UPLOAD_DEVICE == 0) //board compilation
@@ -34,16 +40,18 @@ void setup() {
         #ifdef VESC_CONTROL_PORT
 
             //Vesc port open and set speed
-            #ifdef VESC_CONTROL_PORT_SPEED
-                VESC_CONTROL_PORT.begin(CONTROL_PORT_SPEED);
-            #else // VESC_CONTROL_PORT_SPEED
+            #if defined(VESC_CONTROL_PORT_SPEED)
+                VESC_CONTROL_PORT.begin(VESC_CONTROL_PORT_SPEED);
+            #elif defined(DEFAULT_PORT_SPEED) // VESC_CONTROL_PORT_SPEED
                 VESC_CONTROL_PORT.begin(DEFAULT_PORT_SPEED);
+            #else // VESC_CONTROL_PORT_SPEED
+                VESC_CONTROL_PORT.begin(9600);
             #endif // VESC_CONTROL_PORT_SPEED
             VESC.setSerialPort(&VESC_CONTROL_PORT);
 
-            #ifdef VESC_DEBUG
+            #ifdef VESC_DEBUG_PORT
                 VESC.setDebugPort(&VESC_DEBUG_PORT);
-            #endif // VESC_DEBUG
+            #endif // VESC_DEBUG_PORT
 
         #endif // VESC_CONTROL_PORT
 

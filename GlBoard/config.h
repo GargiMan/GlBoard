@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 //compilation settings
-#define UPLOAD_DEVICE 0                     //Device where code will be uploaded, 0 = board / 1 = controller
+#define UPLOAD_DEVICE 1                     //Device where code will be uploaded, 0 = board / 1 = controller
 
 
 //---------------------------------//
