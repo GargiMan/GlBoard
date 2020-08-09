@@ -2,9 +2,16 @@
  * Glboard
  * Author: Gargi
  * 
- * Only "config.h" file can be modified with user settings
- * 
+ * Change UPLOAD_DEVICE value for another device 
+ * File 'config.h' can be modified with other settings 
  */
+
+//upload device select
+#define UPLOAD_DEVICE 1                     //Device where code will be uploaded, 0 = board / 1 = controller
+
+
+// GLBOARD CODE
+
 
 #include "config.h"     //library with settings
 
@@ -24,35 +31,24 @@
 void setup() {
 
     //Usb comm
-    #ifdef DEBUG_PORT
-
-        #ifdef defined(DEFAULT_PORT_SPEED)
-            DEBUG_PORT.begin(DEFAULT_PORT_SPEED);
-        #else // DEFAULT_PORT_SPEED
-            DEBUG_PORT.begin(9600);
-        #endif // DEFAULT_PORT_SPEED
-        
-    #endif // DEBUG_PORT
+    #ifdef ESP_DEBUG_PORT
+            ESP_DEBUG_PORT.begin(PORT_SPEED);
+    #endif // ESP_DEBUG_PORT
 
     #if (UPLOAD_DEVICE == 0) //board compilation
 
         //Vesc port check and setup
         #ifdef VESC_CONTROL_PORT
-
-            //Vesc port open and set speed
-            #if defined(VESC_CONTROL_PORT_SPEED)
-                VESC_CONTROL_PORT.begin(VESC_CONTROL_PORT_SPEED);
-            #elif defined(DEFAULT_PORT_SPEED) // VESC_CONTROL_PORT_SPEED
-                VESC_CONTROL_PORT.begin(DEFAULT_PORT_SPEED);
-            #else // VESC_CONTROL_PORT_SPEED
-                VESC_CONTROL_PORT.begin(9600);
-            #endif // VESC_CONTROL_PORT_SPEED
+            #if (ESP_DEBUG_PORT != VESC_CONTROL_PORT)
+                VESC_CONTROL_PORT.begin(PORT_SPEED);
+            #endif // (ESP_DEBUG_PORT != VESC_CONTROL_PORT)
             VESC.setSerialPort(&VESC_CONTROL_PORT);
-
             #ifdef VESC_DEBUG_PORT
+                #if (ESP_DEBUG_PORT != VESC_DEBUG_PORT)
+                    VESC_DEBUG_PORT.begin(PORT_SPEED);
+                #endif // (ESP_DEBUG_PORT != VESC_DEBUG_PORT)
                 VESC.setDebugPort(&VESC_DEBUG_PORT);
             #endif // VESC_DEBUG_PORT
-
         #endif // VESC_CONTROL_PORT
 
         //Front light setup

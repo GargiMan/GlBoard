@@ -1,20 +1,20 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-//compilation settings
-#define UPLOAD_DEVICE 1                     //Device where code will be uploaded, 0 = board / 1 = controller
+//---------------------------------//
+//-------------SETTINGS------------//
+//---------------------------------//
 
+#define PORT_SPEED 115200                   //Default esp and vesc speed , need to be defined for any communication
 
 //---------------------------------//
 //----------BOARD-SETTINGS---------//
 //---------------------------------//
 
 //port and vesc settings
-#define DEFAULT_PORT_SPEED 115200           //Default comm and vesc speed , need to be defined for any communication
-//#define DEBUG_PORT Serial1                  //Debug port , no debug if comented
-#define VESC_CONTROL_PORT Serial2           //Vesc control , default port speed or custom
-//#define VESC_CONTROL_PORT_SPEED 115200      //Vesc control speed
-//#define VESC_DEBUG_PORT Serial1             //Vesc debug print , default port speed , no vesc debug if comented
+//#define DEBUG_PORT Serial1              //Debug port , speed defined in PORT_SPEED , no debug if comented
+#define VESC_CONTROL_PORT Serial2           //Vesc control port, speed defined in PORT_SPEED
+//#define VESC_DEBUG_PORT Serial1             //Vesc debug print , speed defined in PORT_SPEED , no vesc debug if comented
 
 
 //lights settings
