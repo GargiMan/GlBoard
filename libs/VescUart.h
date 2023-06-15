@@ -1,5 +1,5 @@
-#ifndef _VESCUART_h
-#define _VESCUART_h
+#ifndef VESCUART_H_
+#define VESCUART_H_
 
 #include <Arduino.h>
 #include "datatypes.h"

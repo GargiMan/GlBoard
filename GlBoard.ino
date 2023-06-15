@@ -7,37 +7,37 @@
  */
 
 #include "config.h"
-#include "BluetoothSerial.h"
-#include "VescUart.h"
+#include "libs/VescUart.h"
+#include <BluetoothSerial.h>
 
 VescUart VESC;
-BluetoothSerial SerialBT;
+BluetoothSerial BT_PORT;
 
 void setup()
 {
 
-    // debug
-    #ifdef DEBUG
-        DEBUG_PORT.begin(PORT_SPEED);
-    #endif // DEBUG
+// debug
+#ifdef DEBUG
+    DEBUG_PORT.begin(PORT_SPEED);
+#endif // DEBUG
 
-    //vesc
-    #ifdef VESC_CONTROL_PORT
-        VESC_CONTROL_PORT.begin(PORT_SPEED);
-        VESC.setSerialPort(&VESC_CONTROL_PORT);
-        //VESC.setDebugPort(&VESC_DEBUG_PORT);
-    #endif // VESC_CONTROL_PORT
+// vesc
+#ifdef VESC_CONTROL_PORT
+    VESC_CONTROL_PORT.begin(PORT_SPEED);
+    VESC.setSerialPort(&VESC_CONTROL_PORT);
+    // VESC.setDebugPort(&VESC_DEBUG_PORT);
+#endif // VESC_CONTROL_PORT
 
-    //bluetooth
-    #ifdef BT_PORT
-        BT_PORT.begin(BT_DEVICE); // Bluetooth device name
-        #ifdef DEBUG
-            DEBUG_PORT.print("Bluetooth ready: ");
-            DEBUG_PORT.println(BT_DEVICE);
-        #endif // DEBUG
-    #endif // BT_PORT
+// bluetooth
+#ifdef BT_PORT
+    BT_PORT.begin(BT_DEVICE); // start Bluetooth with device name
+#ifdef DEBUG
+    DEBUG_PORT.print("Bluetooth ready: ");
+    DEBUG_PORT.println(BT_DEVICE);
+#endif // DEBUG
+#endif // BT_PORT
 
-    //pin setup
+    // pin setup
     pinMode(LED_PIN_ONBOARD, OUTPUT);
 }
 
@@ -47,14 +47,17 @@ void loop()
     digitalWrite(LED_PIN_ONBOARD, BT_PORT.hasClient() ? HIGH : LOW);
 
     // send
-    if (DEBUG_PORT.available())
+    if (VESC.getVescValues())
     {
-        String str = "";
+        // float vamp = VESC.data.avgInputCurrent;
+        // float vduty = abs(VESC.data.dutyCycleNow);
+        float vvolt = VESC.data.inpVoltage;
+        // long vtach = VESC.data.tachometerAbs;
+        // long vrpm = abs(VESC.data.rpm);
 
-        while (DEBUG_PORT.available())
-        {
-            str += (char)DEBUG_PORT.read();
-        }
+        char buffer[10];
+        dtostrf(vvolt, 2, 2, buffer);
+        String str = String(buffer);
 
         String payload = "";
         payload += MASTER;
@@ -75,24 +78,41 @@ void loop()
             {
                 BT_PORT.read();
             }
-            DEBUG_PORT.write("\nWrong message format");
+            DEBUG_PORT.write("\nWrong message format\n");
         }
         else
         {
             payloadLen = BT_PORT.read();
         }
 
-        while (BT_PORT.available() && payloadLen--)
+        if (BT_PORT.available() && payloadLen == 1)
         {
-            // temp for converting value from char to -100/100
-            if (payloadLen == 0)
+            payloadLen--;
+            char data = BT_PORT.read();
+            // converting value from char to -100/100
+            int value = data > 127 ? data - 256 : data;
+            DEBUG_PORT.print(value);
+
+            // calculate current and send to vesc
+            if (value > 0)
             {
-                char data = BT_PORT.read();
-                int value = data > 127 ? data - 256 : data;
-                DEBUG_PORT.print(value);
+                // negative value for reverse
+                VESC.setCurrent(value * MAX_THROTTLE_POWER / 100);
+            }
+            else if (value < 0)
+            {
+                VESC.setBrakeCurrent(abs(value) * MAX_BRAKE_POWER / 100);
             }
             else
             {
+                VESC.setCurrent(0);
+            }
+        }
+        else
+        {
+            while (BT_PORT.available() && payloadLen > 0)
+            {
+                payloadLen--;
                 DEBUG_PORT.write(BT_PORT.read());
             }
         }
@@ -102,8 +122,8 @@ void loop()
             while (BT_PORT.available())
             {
                 BT_PORT.read();
-                DEBUG_PORT.write("\nWrong payload length\n");
             }
+            DEBUG_PORT.write("\nWrong payload length\n");
         }
         else
         {
@@ -113,6 +133,12 @@ void loop()
             }
         }
     }
+    else
+    {
 
-    delay(2);
+        // send data to vesc
+        VESC.setCurrent(0);
+    }
+
+    delay(CYCLE_MS);
 }

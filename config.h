@@ -9,6 +9,8 @@
 
 #define PORT_SPEED 115200 // Default esp and vesc speed , need to be defined for any communication
 
+#define CYCLE_MS 2 // Main cycle time in ms
+
 //---------------------------------//
 //------------BLUETOOTH------------//
 //---------------------------------//
@@ -25,7 +27,7 @@
 //---------------------------------//
 
 // port and vesc settings
-#define DEBUG_PORT Serial1        // Debug port, no debug if comented
+#define DEBUG_PORT Serial        // Debug port, no debug if comented
 #define VESC_CONTROL_PORT Serial2 // Vesc control port
 // #define VESC_DEBUG_PORT Serial1          //Vesc debug print, no vesc debug if comented
 
@@ -36,34 +38,8 @@
 // #define RLIGHT_POWER 0.4                    //intenzita svietenia rlight (stála) , 0 - 1
 #define LED_PIN_ONBOARD 2
 
-// controller settings
-#define JOY_DEAD_APPROX 0.05 // deadzone rýchlosti
-#define JOY_DEAD_H 540       // deadzone horná hranica
-#define JOY_DEAD_L 420       // deadzone dolná hranica
-#define JOY_RES 1023         // rozlíšenie analogread , 10bit - 1023 , 12bit - 4095
-
-#define JOY_LIMIT_H 0.95       // limit duty pre vyššie obtiažnosti
-#define JOY_LIMIT_L 0.50       // liit duty pre nižšie obtiažnosti
-#define JOY_HOLD_CHANGE_H 0.05 // maximálna zmena pri držaní hold , mod 3/4 , 1 - 100
-#define JOY_HOLD_CHANGE_L 0.03 // maximálna zmena pri držaní hold , mod 1/2 , 1 - 100
-#define JOY_BRAKE_POWER_H 20   // maximálna hodnota brzdiaceho prúdu, mod 3/4
-#define JOY_BRAKE_POWER_L 10   // maximálna hodnota brzdiaceho prúdu, mod 1/2
-
-//---------------------------------//
-//-------CONTROLLER-SETTINGS-------//
-//---------------------------------//
-
-// sleep settings
-#define SLEEP_PIN 0x000000004 // hex - 2 wake up pin
-#define SLEEP_AFK_TIME 30000  // millis without any change , deepsleep
-#define SLEEP_DEAD 50         // odchýlka od deadzone + aj - , zvykne občas skočiť hodnota
-
-// controls settings
-#define POWER_PIN 32 // analog, throtle / brake value
-#define HOLD_PIN 2   // digital, hold speed control
-#define MODE_PIN 13  // digital, mode switch
-#define LIGHT_PIN 16 // digital, light control
-// #define LIGHT_PIN 17                //digital, rear light control
-#define ROTATE_PIN 4 // digital, drive rotation control
+// current limit
+#define MAX_THROTTLE_POWER 10
+#define MAX_BRAKE_POWER 10
 
 #endif // CONFIG_H
