@@ -19,8 +19,8 @@
 #define BT_DEVICE "GlBoard" // Bluetooth device name
 
 // protocol description
-#define MASTER 0
-#define SLAVE 1
+#define MASTER 0x01
+#define SLAVE 0x02
 
 //---------------------------------//
 //---------BOARD-SETTINGS----------//

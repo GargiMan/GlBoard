@@ -60,8 +60,8 @@ void loop()
         String str = String(buffer);
 
         String payload = "";
-        payload += MASTER;
-        payload += str.length();
+        payload += (char)MASTER;
+        payload += (char)str.length();
         payload += str;
         BT_PORT.write((const uint8_t *)payload.c_str(), payload.length());
     }
@@ -78,7 +78,7 @@ void loop()
             {
                 BT_PORT.read();
             }
-            DEBUG_PORT.write("\nWrong message format\n");
+            DEBUG_PORT.write("Wrong message format\n");
         }
         else
         {
@@ -91,7 +91,6 @@ void loop()
             char data = BT_PORT.read();
             // converting value from char to -100/100
             int value = data > 127 ? data - 256 : data;
-            DEBUG_PORT.print(value);
 
             // calculate current and send to vesc
             if (value > 0)
@@ -113,7 +112,7 @@ void loop()
             while (BT_PORT.available() && payloadLen > 0)
             {
                 payloadLen--;
-                DEBUG_PORT.write(BT_PORT.read());
+                BT_PORT.read();
             }
         }
 
@@ -123,14 +122,7 @@ void loop()
             {
                 BT_PORT.read();
             }
-            DEBUG_PORT.write("\nWrong payload length\n");
-        }
-        else
-        {
-            if (msgFrom == SLAVE)
-            {
-                DEBUG_PORT.write("\n");
-            }
+            DEBUG_PORT.write("Wrong payload length\n");
         }
     }
     else
