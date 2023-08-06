@@ -6,10 +6,11 @@
 //---------------------------------//
 
 #define DEBUG 1 // Debug info , comment for no debug output
+// #define VESC_DEBUG 1 // Vesc debug info , comment for no vesc debug output
 
 #define PORT_SPEED 115200 // Default esp and vesc speed , need to be defined for any communication
 
-#define CYCLE_MS 2 // Main cycle time in ms
+#define CYCLE_MS 10 // Main cycle time wait in ms
 
 //---------------------------------//
 //------------BLUETOOTH------------//
@@ -27,9 +28,8 @@
 //---------------------------------//
 
 // port and vesc settings
-#define DEBUG_PORT Serial        // Debug port, no debug if comented
-#define VESC_CONTROL_PORT Serial2 // Vesc control port
-// #define VESC_DEBUG_PORT Serial1          //Vesc debug print, no vesc debug if comented
+#define DEBUG_PORT Serial // Debug port
+#define VESC_PORT Serial2 // Vesc port
 
 // lights settings
 // #define FLIGHT_PIN 4                        //Front light pin

@@ -7,7 +7,7 @@
  */
 
 #include "config.h"
-#include "libs/VescUart.h"
+#include "src/VescUart.h"
 #include <BluetoothSerial.h>
 
 VescUart VESC;
@@ -17,25 +17,26 @@ void setup()
 {
 
 // debug
-#ifdef DEBUG
+#if defined(DEBUG) || defined(VESC_DEBUG)
     DEBUG_PORT.begin(PORT_SPEED);
-#endif // DEBUG
+#endif // DEBUG || VESC_DEBUG
 
 // vesc
-#ifdef VESC_CONTROL_PORT
-    VESC_CONTROL_PORT.begin(PORT_SPEED);
-    VESC.setSerialPort(&VESC_CONTROL_PORT);
-    // VESC.setDebugPort(&VESC_DEBUG_PORT);
-#endif // VESC_CONTROL_PORT
+VESC_PORT.begin(PORT_SPEED);
+VESC.setSerialPort(&VESC_PORT);
+#ifdef DEBUG
+    DEBUG_PORT.println("VESC ready");
+#endif // DEBUG
+#ifdef VESC_DEBUG
+    VESC.setDebugPort(&DEBUG_PORT);
+#endif // VESC_DEBUG
 
 // bluetooth
-#ifdef BT_PORT
-    BT_PORT.begin(BT_DEVICE); // start Bluetooth with device name
+BT_PORT.begin(BT_DEVICE); // start Bluetooth with device name
 #ifdef DEBUG
     DEBUG_PORT.print("Bluetooth ready: ");
     DEBUG_PORT.println(BT_DEVICE);
 #endif // DEBUG
-#endif // BT_PORT
 
     // pin setup
     pinMode(LED_PIN_ONBOARD, OUTPUT);
@@ -49,21 +50,40 @@ void loop()
     // send
     if (VESC.getVescValues())
     {
-        // float vamp = VESC.data.avgInputCurrent;
-        // float vduty = abs(VESC.data.dutyCycleNow);
-        float vvolt = VESC.data.inpVoltage;
-        // long vtach = VESC.data.tachometerAbs;
-        // long vrpm = abs(VESC.data.rpm);
 
-        char buffer[10];
-        dtostrf(vvolt, 2, 2, buffer);
-        String str = String(buffer);
+#ifdef VESC_DEBUG
+        VESC.printVescValues();
+#endif // VESC_DEBUG
 
-        String payload = "";
-        payload += (char)MASTER;
-        payload += (char)str.length();
-        payload += str;
-        BT_PORT.write((const uint8_t *)payload.c_str(), payload.length());
+        if (sizeof(float) != 4 || sizeof(long) != 4)
+        {
+#ifdef DEBUG
+            DEBUG_PORT.write("Wrong data type size\n");
+#endif // DEBUG
+            return;
+        }
+
+        // Calculate the total size needed for data in the byte array
+        size_t dataSize = 6 * sizeof(float) + 3 * sizeof(long);
+
+        // Create a byte array to store values
+        uint8_t byteArray[dataSize + 2];
+
+        // Copy values to the byte array
+        byteArray[0] = MASTER;
+        byteArray[1] = dataSize;
+        memcpy(byteArray + 2, &VESC.data.avgMotorCurrent, 4);
+        memcpy(byteArray + 6, &VESC.data.avgInputCurrent, 4);
+        memcpy(byteArray + 10, &VESC.data.dutyCycleNow, 4);
+        memcpy(byteArray + 14, &VESC.data.rpm, 4);
+        memcpy(byteArray + 18, &VESC.data.inpVoltage, 4);
+        memcpy(byteArray + 22, &VESC.data.ampHours, 4);
+        memcpy(byteArray + 26, &VESC.data.ampHoursCharged, 4);
+        memcpy(byteArray + 30, &VESC.data.tachometer, 4);
+        memcpy(byteArray + 34, &VESC.data.tachometerAbs, 4);
+
+        // Send the byte array
+        BT_PORT.write((const uint8_t *)byteArray, dataSize + 2);
     }
 
     // recieve
@@ -78,7 +98,9 @@ void loop()
             {
                 BT_PORT.read();
             }
+#ifdef DEBUG
             DEBUG_PORT.write("Wrong message format\n");
+#endif // DEBUG
         }
         else
         {
@@ -88,7 +110,7 @@ void loop()
         if (BT_PORT.available() && payloadLen == 1)
         {
             payloadLen--;
-            char data = BT_PORT.read();
+            uint8_t data = BT_PORT.read();
             // converting value from char to -100/100
             int value = data > 127 ? data - 256 : data;
 
@@ -122,7 +144,9 @@ void loop()
             {
                 BT_PORT.read();
             }
+#ifdef DEBUG
             DEBUG_PORT.write("Wrong payload length\n");
+#endif // DEBUG
         }
     }
     else
