@@ -10,6 +10,8 @@ class VescUart
 {
 	/** Struct to store the telemetry data returned by the VESC */
 	struct dataPackage {
+		float tempMosfet;
+		float tempMotor;
 		float avgMotorCurrent;
 		float avgInputCurrent;
 		float dutyCycleNow;
@@ -17,6 +19,8 @@ class VescUart
 		float inpVoltage;
 		float ampHours;
 		float ampHoursCharged;
+		float wattHours;
+		float wattHoursCharged;
 		long tachometer;
 		long tachometerAbs;
 	};

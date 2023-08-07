@@ -50,6 +50,10 @@ void loop()
     // send
     if (VESC.getVescValues())
     {
+        // Correct vesc values
+        VESC.data.rpm /= MOTOR_PHASES * MOTOR_POLES;
+        VESC.data.tachometer /= MOTOR_PHASES * MOTOR_POLES;
+        VESC.data.tachometerAbs /= MOTOR_PHASES * MOTOR_POLES;
 
 #ifdef VESC_DEBUG
         VESC.printVescValues();
@@ -64,23 +68,29 @@ void loop()
         }
 
         // Calculate the total size needed for data in the byte array
-        size_t dataSize = 6 * sizeof(float) + 3 * sizeof(long);
+        size_t dataSize = 10 * sizeof(float) + 3 * sizeof(long);
 
         // Create a byte array to store values
         uint8_t byteArray[dataSize + 2];
 
+        int startIndex = 2, dataIndex = 0;
+
         // Copy values to the byte array
         byteArray[0] = MASTER;
         byteArray[1] = dataSize;
-        memcpy(byteArray + 2, &VESC.data.avgMotorCurrent, 4);
-        memcpy(byteArray + 6, &VESC.data.avgInputCurrent, 4);
-        memcpy(byteArray + 10, &VESC.data.dutyCycleNow, 4);
-        memcpy(byteArray + 14, &VESC.data.rpm, 4);
-        memcpy(byteArray + 18, &VESC.data.inpVoltage, 4);
-        memcpy(byteArray + 22, &VESC.data.ampHours, 4);
-        memcpy(byteArray + 26, &VESC.data.ampHoursCharged, 4);
-        memcpy(byteArray + 30, &VESC.data.tachometer, 4);
-        memcpy(byteArray + 34, &VESC.data.tachometerAbs, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.tempMosfet, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.tempMotor, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.avgMotorCurrent, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.avgInputCurrent, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.dutyCycleNow, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.rpm, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.inpVoltage, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.ampHours, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.ampHoursCharged, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.wattHours, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.wattHoursCharged, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.tachometer, 4);
+        memcpy(byteArray + startIndex + dataIndex++ * 4, &VESC.data.tachometerAbs, 4);
 
         // Send the byte array
         BT_PORT.write((const uint8_t *)byteArray, dataSize + 2);

@@ -42,4 +42,8 @@
 #define MAX_THROTTLE_POWER 10
 #define MAX_BRAKE_POWER 10
 
+// motor settings
+#define MOTOR_POLES 12 
+#define MOTOR_PHASES 3
+
 #endif // CONFIG_H
