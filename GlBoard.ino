@@ -13,8 +13,7 @@
 VescUart VESC;
 BluetoothSerial BT_PORT;
 
-void setup()
-{
+void setup() {
 
 // debug
 #if defined(DEBUG) || defined(VESC_DEBUG)
@@ -42,14 +41,12 @@ BT_PORT.begin(BT_DEVICE); // start Bluetooth with device name
     pinMode(LED_PIN_ONBOARD, OUTPUT);
 }
 
-void loop()
-{
+void loop() {
     // check if client is connected
     digitalWrite(LED_PIN_ONBOARD, BT_PORT.hasClient() ? HIGH : LOW);
 
     // send
-    if (VESC.getVescValues())
-    {
+    if (VESC.getVescValues()) {
         // Correct vesc values
         VESC.data.rpm /= MOTOR_PHASES * MOTOR_POLES;
         VESC.data.tachometer /= MOTOR_PHASES * MOTOR_POLES;
@@ -59,8 +56,7 @@ void loop()
         VESC.printVescValues();
 #endif // VESC_DEBUG
 
-        if (sizeof(float) != 4 || sizeof(long) != 4)
-        {
+        if (sizeof(float) != 4 || sizeof(long) != 4) {
 #ifdef DEBUG
             DEBUG_PORT.write("Wrong data type size\n");
 #endif // DEBUG
@@ -97,70 +93,52 @@ void loop()
     }
 
     // recieve
-    if (BT_PORT.available())
-    {
-        int msgFrom = BT_PORT.read();
+    if (BT_PORT.available()) {
+        uint8_t msgFrom = BT_PORT.read();
         int payloadLen = 0;
 
-        if (msgFrom != SLAVE)
-        {
-            while (BT_PORT.available())
-            {
+        if (msgFrom != SLAVE) {
+            while (BT_PORT.available()) {
                 BT_PORT.read();
             }
 #ifdef DEBUG
             DEBUG_PORT.write("Wrong message format\n");
 #endif // DEBUG
-        }
-        else
-        {
+        } else {
             payloadLen = BT_PORT.read();
         }
 
-        if (BT_PORT.available() && payloadLen == 1)
-        {
+        if (BT_PORT.available() && payloadLen == 1) {
             payloadLen--;
             uint8_t data = BT_PORT.read();
             // converting value from char to -100/100
             int value = data > 127 ? data - 256 : data;
 
             // calculate current and send to vesc
-            if (value > 0)
-            {
+            if (value > 0) {
                 // negative value for reverse
                 VESC.setCurrent(value * MAX_THROTTLE_POWER / 100);
-            }
-            else if (value < 0)
-            {
+            } else if (value < 0) {
                 VESC.setBrakeCurrent(abs(value) * MAX_BRAKE_POWER / 100);
-            }
-            else
-            {
+            } else {
                 VESC.setCurrent(0);
             }
-        }
-        else
-        {
-            while (BT_PORT.available() && payloadLen > 0)
-            {
+        } else {
+            while (BT_PORT.available() && payloadLen > 0) {
                 payloadLen--;
                 BT_PORT.read();
             }
         }
 
-        if (payloadLen > 0)
-        {
-            while (BT_PORT.available())
-            {
+        if (payloadLen > 0) {
+            while (BT_PORT.available()) {
                 BT_PORT.read();
             }
 #ifdef DEBUG
             DEBUG_PORT.write("Wrong payload length\n");
 #endif // DEBUG
         }
-    }
-    else
-    {
+    } else {
 
         // send data to vesc
         VESC.setCurrent(0);
