@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "datatypes.h"
 #include "buffer.h"
-#include "crc.h"
+#include "crc16.h"
 
 class VescUart
 {

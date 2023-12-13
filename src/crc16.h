@@ -16,18 +16,18 @@
     */
 
 /*
- * crc.h
+ * crc16.h
  *
  *  Created on: 26 feb 2012
  *      Author: benjamin
  */
 
-#ifndef CRC_H_
-#define CRC_H_
+#ifndef CRC16_H_
+#define CRC16_H_
 
 /*
  * Functions
  */
 unsigned short crc16(unsigned char *buf, unsigned int len);
 
-#endif /* CRC_H_ */
+#endif /* CRC16_H_ */

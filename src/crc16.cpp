@@ -16,12 +16,12 @@
     */
 
 /*
- * crc.c
+ * crc16.cpp
  *
  *  Created on: 26 feb 2012
  *      Author: benjamin
  */
-#include "crc.h"
+#include "crc16.h"
 
 // CRC Table
 const unsigned short crc16_tab[] = { 0x0000, 0x1021, 0x2042, 0x3063, 0x4084,
