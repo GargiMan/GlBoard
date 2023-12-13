@@ -1,12 +1,14 @@
 /*
-	Copyright 2012-2014 Benjamin Vedder	benjamin@vedder.se
+	Copyright 2016 Benjamin Vedder	benjamin@vedder.se
 
-	This program is free software: you can redistribute it and/or modify
+	This file is part of the VESC firmware.
+
+	The VESC firmware is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
+    The VESC firmware is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
@@ -15,17 +17,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
 
-/*
+/**
  * buffer.h
  *
  *  Created on: 13 maj 2013
- *      Author: benjamin
+ *      Author: Benjamin Vedder
+ *      Source: https://github.com/vedderb/bldc
  */
 
 #ifndef BUFFER_H_
 #define BUFFER_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 void buffer_append_int16(uint8_t* buffer, int16_t number, int32_t *index);
 void buffer_append_uint16(uint8_t* buffer, uint16_t number, int32_t *index);
@@ -41,4 +45,5 @@ float buffer_get_float16(const uint8_t *buffer, float scale, int32_t *index);
 float buffer_get_float32(const uint8_t *buffer, float scale, int32_t *index);
 bool buffer_get_bool(const uint8_t *buffer, int32_t *index);
 void buffer_append_bool(uint8_t *buffer,bool value, int32_t *index);
-#endif /* BUFFER_H_ */
+
+#endif // BUFFER_H_

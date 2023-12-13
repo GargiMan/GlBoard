@@ -1,5 +1,5 @@
 /*
-	Copyright 2016 Benjamin Vedder	benjamin@vedder.se
+	Copyright 2016 - 2022 Benjamin Vedder	benjamin@vedder.se
 
 	This file is part of the VESC firmware.
 
@@ -16,6 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
+
+/**
+ * datatypes.h
+ *
+ *  Created on: 14 sep 2014
+ *      Author: Benjamin Vedder
+ *      Source: https://github.com/vedderb/bldc
+ */
 
 #ifndef DATATYPES_H_
 #define DATATYPES_H_
@@ -610,4 +618,4 @@ typedef enum {
 	NRF_PAIR_FAIL
 } NRF_PAIR_RES;
 
-#endif /* DATATYPES_H_ */
+#endif // DATATYPES_H_
