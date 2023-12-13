@@ -1,6 +1,8 @@
 /**
- * Glboard
- * Author: Marek Gergel
+ * Glboard.ino
+ *
+ * Created on: 13 jul 2020
+ *     Author: Marek Gergel
  *
  * File 'config.h' can be modified with custom configuration.
  */
@@ -161,6 +163,9 @@ void send_metrics_data() {
 }
 
 void parse_recieved_data() {
+    static unsigned long lastTimeValidControlReceived = 0;
+    static bool resetCurrent = false;
+
     if (BT_PORT.available()) {
         uint8_t crc = BT_PORT.read();
         uint8_t flags = BT_PORT.read();
@@ -206,6 +211,9 @@ void parse_recieved_data() {
                         return;
                     }
 
+                    resetCurrent = true;
+                    lastTimeValidControlReceived = millis();
+
                     // converting direction from char to false/true (forward/reverse)
                     bool direction = payload[0] != 0;
                     // converting current value from char to -100/100
@@ -236,8 +244,11 @@ void parse_recieved_data() {
 
         delete[] packet;
     } else {
-
-        // reset current
-        VESC.setCurrent(0);
+        // reset current if no control message received for a while
+        if (resetCurrent) {
+            if (millis() - lastTimeValidControlReceived > CONTROL_TIMEOUT) {
+                VESC.setCurrent(0);
+            }
+        }
     }
 }

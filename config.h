@@ -13,6 +13,8 @@
 
 #define METRICS_UPDATE_DELAY 500 // Minimum delay between metrics update in ms
 
+#define CONTROL_TIMEOUT 2000 // Timeout for control message in ms
+
 //---------------------------------//
 //------------BLUETOOTH------------//
 //---------------------------------//
