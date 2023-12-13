@@ -5,12 +5,13 @@
 //------------SETTINGS-------------//
 //---------------------------------//
 
-#define DEBUG 1 // Debug info , comment for no debug output
-// #define VESC_DEBUG 1 // Vesc debug info , comment for no vesc debug output
+// debug options , comment for no debug output
+#define DEBUG 1       // Default debug info
+//#define VESC_DEBUG 1  // Vesc debug info
 
-#define PORT_SPEED 115200 // Default esp and vesc speed , need to be defined for any communication
+#define PORT_SPEED 115200 // Default esp and vesc baud rate
 
-#define CYCLE_MS 10 // Main cycle time wait in ms
+#define METRICS_UPDATE_DELAY 100 // Minimum delay between metrics update in ms
 
 //---------------------------------//
 //------------BLUETOOTH------------//
@@ -19,9 +20,34 @@
 #define BT_PORT SerialBT    // Bluetooth port
 #define BT_DEVICE "GlBoard" // Bluetooth device name
 
-// protocol description
-#define MASTER 0x01
-#define SLAVE 0x02
+//---------------------------------//
+//-----PROTOCOL-COMMUNICATION------//
+//---------------------------------//
+
+// flags
+#define REQUEST_FLAG 0x00
+#define RESPONSE_FLAG 0x01
+#define MASTER_FLAG 0x00
+#define SLAVE_FLAG 0x04
+#define TEST_FLAG 0x00
+#define METRICS_FLAG 0x10
+#define CONTROL_FLAG 0x20
+#define CONFIG_FLAG 0x30
+
+// flag masks
+#define MESSAGE_TYPE_MASK 0x03
+#define SOURCE_NODE_MASK 0x0c
+#define COMMAND_MASK 0x70
+
+// functions with flags
+#define IS_REQUEST(x) ((x & MESSAGE_TYPE_MASK) == REQUEST_FLAG)
+#define IS_RESPONSE(x) ((x & MESSAGE_TYPE_MASK) == RESPONSE_FLAG)
+#define IS_MASTER(x) ((x & SOURCE_NODE_MASK) == MASTER_FLAG)
+#define IS_SLAVE(x) ((x & SOURCE_NODE_MASK) == SLAVE_FLAG)
+#define GET_COMMAND(x) (x & COMMAND_MASK)
+#define SET_COMMAND(x, y) (x = (x & ~COMMAND_MASK) | y)
+#define SET_SOURCE_NODE(x, y) (x = (x & ~SOURCE_NODE_MASK) | y)
+#define SET_MESSAGE_TYPE(x, y) (x = (x & ~MESSAGE_TYPE_MASK) | y)
 
 //---------------------------------//
 //---------BOARD-SETTINGS----------//
