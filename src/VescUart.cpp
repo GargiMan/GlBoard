@@ -1,3 +1,12 @@
+/**
+ * VescUart.cpp
+ *
+ *  Created on: 28 nov 2018
+ *      Author: Emil Jacobsen
+ *      Source: https://github.com/SolidGeek/VescUart
+ * Modified by: Marek Gergel
+ */
+
 #include "VescUart.h"
 #include <HardwareSerial.h>
 
@@ -171,7 +180,7 @@ int VescUart::packSendPayload(uint8_t * payload, int lenPay) {
 bool VescUart::processReadPacket(uint8_t * message) {
 
 	COMM_PACKET_ID packetId;
-	int32_t ind = 0;
+	int32_t index = 0;
 
 	packetId = (COMM_PACKET_ID)message[0];
 	message++; // Removes the packetId from the actual message (payload)
@@ -179,21 +188,25 @@ bool VescUart::processReadPacket(uint8_t * message) {
 	switch (packetId){
 		case COMM_GET_VALUES: // Structure defined here: https://github.com/vedderb/bldc/blob/43c3bbaf91f5052a35b75c2ff17b5fe99fad94d1/commands.c#L164
 
-			data.tempMosfet 		= buffer_get_float16(message, 1e1, &ind);
-			data.tempMotor 			= buffer_get_float16(message, 1e1, &ind);
-			data.avgMotorCurrent 	= buffer_get_float32(message, 1e2, &ind);
-			data.avgInputCurrent 	= buffer_get_float32(message, 1e2, &ind);
-			ind += 8; // Skip the next 8 bytes
-			data.dutyCycleNow 		= buffer_get_float16(message, 1e3, &ind);
-			data.rpm 				= buffer_get_int32(message, &ind);
-			data.inpVoltage 		= buffer_get_float16(message, 1e1, &ind);
-			data.ampHours 			= buffer_get_float32(message, 1e4, &ind);
-			data.ampHoursCharged 	= buffer_get_float32(message, 1e4, &ind);
-			data.wattHours 			= buffer_get_float32(message, 1e4, &ind);
-			data.wattHoursCharged 	= buffer_get_float32(message, 1e4, &ind);
-			data.tachometer 		= buffer_get_int32(message, &ind);
-			data.tachometerAbs 		= buffer_get_int32(message, &ind);
-			return true;
+			data.tempMosfet 		= buffer_get_float16(message, 1e1, &index);
+			data.tempMotor 			= buffer_get_float16(message, 1e1, &index);
+			data.avgMotorCurrent 	= buffer_get_float32(message, 1e2, &index);
+			data.avgInputCurrent 	= buffer_get_float32(message, 1e2, &index);
+			index += 8; // Skip the next 8 bytes
+			data.dutyCycleNow 		= buffer_get_float16(message, 1e3, &index);
+			data.rpm 				= buffer_get_int32(message, &index);
+			data.inpVoltage 		= buffer_get_float16(message, 1e1, &index);
+			data.ampHours 			= buffer_get_float32(message, 1e4, &index);
+			data.ampHoursCharged 	= buffer_get_float32(message, 1e4, &index);
+			data.wattHours 			= buffer_get_float32(message, 1e4, &index);
+			data.wattHoursCharged 	= buffer_get_float32(message, 1e4, &index);
+			data.tachometer 		= buffer_get_int32(message, &index);
+			data.tachometerAbs 		= buffer_get_int32(message, &index);
+            data.error 				= (mc_fault_code)message[index++];
+            data.pidPos				= buffer_get_float32(message, 1e6, &index);
+            data.id					= message[index++];
+
+            return true;
 
 		break;
 
@@ -209,7 +222,6 @@ bool VescUart::getVescValues(void) {
 	uint8_t payload[256];
 
 	packSendPayload(command, 1);
-	// delay(1); //needed, otherwise data is not read
 
 	int lenPayload = receiveUartMessage(payload);
 
@@ -290,5 +302,6 @@ void VescUart::printVescValues() {
 		debugPort->print("wattHoursCharged: "); debugPort->println(data.wattHoursCharged);
 		debugPort->print("tachometer: "); 		debugPort->println(data.tachometer);
 		debugPort->print("tachometerAbs: "); 	debugPort->println(data.tachometerAbs);
+        debugPort->print("error: "); 			debugPort->println(data.error);
 	}
 }

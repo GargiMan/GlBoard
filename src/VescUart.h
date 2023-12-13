@@ -1,3 +1,12 @@
+/**
+ * VescUart.cpp
+ *
+ *  Created on: 28 nov 2018
+ *      Author: Emil Jacobsen
+ *      Source: https://github.com/SolidGeek/VescUart
+ * Modified by: Marek Gergel
+ */
+
 #ifndef VESCUART_H_
 #define VESCUART_H_
 
@@ -23,7 +32,10 @@ class VescUart
 		float wattHoursCharged;
 		long tachometer;
 		long tachometerAbs;
-	};
+        mc_fault_code error;
+        float pidPos;
+        uint8_t id;
+    };
 
 	public:
 		/**
@@ -136,4 +148,4 @@ class VescUart
 
 };
 
-#endif
+#endif // VESCUART_H_
