@@ -1,6 +1,6 @@
 # GlBoard
-Dev version
-Electric longboard based on VESC and ESP32 communication
+
+Electric longboard program for ESP32 that exchange communication data between VESC and remote Bluetooth device
 
 Link for ESP32 library: https://github.com/espressif/arduino-esp32
 
@@ -43,4 +43,3 @@ CRC byte of message is CRC8 checksum for data transfer error detection.
 | 001   | Metrics   | Metrics data    |
 | 010   | Control   | Control data    |
 | 011   | Settings  | Settings data   |
-
