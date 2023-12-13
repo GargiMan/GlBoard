@@ -25,26 +25,14 @@ class VescUart
 		long tachometerAbs;
 	};
 
-	/** Struct to hold the nunchuck values to send over UART */
-	struct nunchuckPackage {
-		int	valueX;
-		int	valueY;
-		bool upperButton; // valUpperButton
-		bool lowerButton; // valLowerButton
-	};
-
-
 	public:
 		/**
 		 * @brief      Class constructor
 		 */
 		VescUart(void);
 
-		/** Variabel to hold measurements returned from VESC */
-		dataPackage data; 
-
-		/** Variabel to hold nunchuck values */
-		nunchuckPackage nunchuck; 
+		/** Variable to hold measurements returned from VESC */
+		dataPackage data;
 
 		/**
 		 * @brief      Set the serial port for uart communication
@@ -64,11 +52,6 @@ class VescUart
 		 * @return     True if successfull otherwise false
 		 */
 		bool getVescValues(void);
-
-		/**
-		 * @brief      Sends values for joystick and buttons to the nunchuck app
-		 */
-		void setNunchuckValues(void);
 
 		/**
 		 * @brief      Set the current to drive the motor

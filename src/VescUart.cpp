@@ -1,12 +1,7 @@
 #include "VescUart.h"
 #include <HardwareSerial.h>
 
-VescUart::VescUart(void){
-	nunchuck.valueX         = 127;
-	nunchuck.valueY         = 127;
-	nunchuck.lowerButton  	= false;
-	nunchuck.upperButton  	= false;
-}
+VescUart::VescUart(void){}
 
 void VescUart::setSerialPort(HardwareSerial* port)
 {
@@ -226,33 +221,6 @@ bool VescUart::getVescValues(void) {
 	{
 		return false;
 	}
-}
-
-void VescUart::setNunchuckValues() {
-	int32_t ind = 0;
-	uint8_t payload[11];
-
-	payload[ind++] = COMM_SET_CHUCK_DATA;
-	payload[ind++] = nunchuck.valueX;
-	payload[ind++] = nunchuck.valueY;
-	buffer_append_bool(payload, nunchuck.lowerButton, &ind);
-	buffer_append_bool(payload, nunchuck.upperButton, &ind);
-	
-	// Acceleration Data. Not used, Int16 (2 byte)
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-
-	if(debugPort != NULL){
-		debugPort->println("Data reached at setNunchuckValues:");
-		debugPort->print("valueX = "); debugPort->print(nunchuck.valueX); debugPort->print(" valueY = "); debugPort->println(nunchuck.valueY);
-		debugPort->print("LowerButton = "); debugPort->print(nunchuck.lowerButton); debugPort->print(" UpperButton = "); debugPort->println(nunchuck.upperButton);
-	}
-
-	packSendPayload(payload, 11);
 }
 
 void VescUart::setCurrent(float current) {
