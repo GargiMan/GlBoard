@@ -183,7 +183,7 @@ void parse_recieved_data() {
         // Check source node
         if (!IS_SLAVE(flags)) {
             read_rest_of_buffer();
-            debug_message("Wrong message source node");
+            debug_message("Wrong message source node (flags 0x%02X)", flags);
             delete[] packet;
             return;
         }
@@ -206,15 +206,18 @@ void parse_recieved_data() {
                         return;
                     }
 
-                    byte direction = payload[0];
-                    // converting value from char to -100/100
-                    int current = payload[1] > 127 ? packet[1] - 256 : packet[1];
+                    // converting direction from char to false/true (forward/reverse)
+                    bool direction = payload[0] != 0;
+                    // converting current value from char to -100/100
+                    int8_t current = payload[1];
 
                     // calculate current and send to vesc
                     if (current > 0) {
-                        // negative value for reverse direction
-                        if (direction != 0) current = -current;
-                        VESC.setCurrent(current * MAX_THROTTLE_POWER / 100);
+                        if (direction) { // reverse
+                            VESC.setCurrent(-current * MAX_THROTTLE_POWER / 100);
+                        } else { // forward
+                            VESC.setCurrent(current * MAX_THROTTLE_POWER / 100);
+                        }
                     } else if (current < 0) {
                         VESC.setBrakeCurrent(abs(current) * MAX_BRAKE_POWER / 100);
                     } else {

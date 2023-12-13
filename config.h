@@ -11,7 +11,7 @@
 
 #define PORT_SPEED 115200 // Default esp and vesc baud rate
 
-#define METRICS_UPDATE_DELAY 100 // Minimum delay between metrics update in ms
+#define METRICS_UPDATE_DELAY 500 // Minimum delay between metrics update in ms
 
 //---------------------------------//
 //------------BLUETOOTH------------//
