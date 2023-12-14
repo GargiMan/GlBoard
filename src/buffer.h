@@ -31,6 +31,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void buffer_append_int16(uint8_t* buffer, int16_t number, int32_t *index);
 void buffer_append_uint16(uint8_t* buffer, uint16_t number, int32_t *index);
 void buffer_append_int32(uint8_t* buffer, int32_t number, int32_t *index);
@@ -45,5 +49,9 @@ float buffer_get_float16(const uint8_t *buffer, float scale, int32_t *index);
 float buffer_get_float32(const uint8_t *buffer, float scale, int32_t *index);
 bool buffer_get_bool(const uint8_t *buffer, int32_t *index);
 void buffer_append_bool(uint8_t *buffer,bool value, int32_t *index);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BUFFER_H_
