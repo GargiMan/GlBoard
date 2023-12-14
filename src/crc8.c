@@ -28,8 +28,8 @@ const unsigned char crc8_tab[] = {
 
 unsigned char crc8(unsigned char *buf, unsigned int len) {
     unsigned char cksum = 0;
-	for (unsigned int i = 0; i < len; i++) {
+    for (unsigned int i = 0; i < len; i++) {
         cksum = crc8_tab[cksum ^ buf[i]];
-	}
-	return cksum;
+    }
+    return cksum;
 }
