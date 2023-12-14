@@ -1,5 +1,5 @@
 /**
- * Glboard.ino
+ * GlBoard.ino
  *
  * Created on: 13 jul 2020
  *     Author: Marek Gergel
@@ -8,13 +8,12 @@
  * File 'config.h' can be modified with custom configuration.
  */
 
-//Arduino.h is included in compilation process
-//#include "C:/Users/mage2/Appdata/Local/Arduino15/packages/esp32/hardware/esp32/2.0.14/cores/esp32/Arduino.h"
-//#include "C:/Users/mage2/Appdata/Local/Arduino15/packages/esp32/hardware/esp32/2.0.14/libraries/BluetoothSerial/src/BluetoothSerial.h"
+#define UPLOAD_BOARD
+#ifdef UPLOAD_BOARD
 
 #include "config.h"
-#include "src/VescUart.h"
 #include "src/crc8.h"
+#include "src/VescUart.h"
 #include <BluetoothSerial.h>
 #include <Preferences.h>
 
@@ -26,7 +25,7 @@ bool hasClient = false;
 int maxLightPower = pow(2, PWM_RESOLUTION) - 1;
 
 void debug_message(const char *fmt, ...);
-void read_rest_of_buffer();
+void throw_bt_buffer();
 void verify_architecture();
 void send_metrics_data();
 void parse_received_data();
@@ -47,12 +46,12 @@ void setup() {
     debug_message("Project version: %s", PROJECT_VERSION);
 
     // preferences
-    preferences.begin(PROJECT_NAME, RO_MODE);
+    preferences.begin(SERVER_PROJECT_NAME, RO_MODE);
     if (preferences.isKey(KEY_PROJECT_VERSION) && preferences.getString(KEY_PROJECT_VERSION) == PROJECT_VERSION) {
         debug_message("Preferences loaded");
     } else { // preferences not found or project version changed
         preferences.end();
-        preferences.begin(PROJECT_NAME, RW_MODE);
+        preferences.begin(SERVER_PROJECT_NAME, RW_MODE);
         preferences.clear();
         preferences.putString(KEY_PROJECT_VERSION, PROJECT_VERSION);
         preferences.putInt(KEY_MAX_THROTTLE_POWER, MAX_THROTTLE_POWER);
@@ -62,7 +61,7 @@ void setup() {
         preferences.putBool(KEY_REAR_LIGHT_ENABLED, false);
         preferences.putFloat(KEY_REAR_LIGHT_POWER, REAR_LIGHT_POWER);
         preferences.end();
-        preferences.begin(PROJECT_NAME, RO_MODE);
+        preferences.begin(SERVER_PROJECT_NAME, RO_MODE);
         debug_message("Preferences recreated");
     }
 
@@ -72,8 +71,10 @@ void setup() {
     debug_message("VESC ready");
 
     // bluetooth
-    BT_PORT.begin(BT_DEVICE); // start Bluetooth with device name
-    debug_message("Bluetooth ready (%s)", BT_DEVICE);
+    BT_PORT.begin(BT_SERVER_DEVICE); // start Bluetooth with device name
+    BT_PORT.setPin(BT_PIN); // set pin
+    BT_PORT.enableSSP(); // enable single secure pairing mode
+    debug_message("Bluetooth ready (%s)", BT_SERVER_DEVICE);
 
     // pin setup
     pinMode(LED_ONBOARD_PIN, OUTPUT);
@@ -99,7 +100,7 @@ void loop() {
         send_metrics_data();
 
         // receive
-        parse_recieved_data();
+        parse_received_data();
     }
 
     // lights
@@ -108,7 +109,8 @@ void loop() {
 
 /**
  * Print debug message to the debug port.
- * @param message
+ * @param fmt Format string.
+ * @param ... Arguments.
  */
 void debug_message(const char *fmt, ...) {
 #ifdef DEBUG
@@ -124,9 +126,9 @@ void debug_message(const char *fmt, ...) {
 }
 
 /**
- * Read the rest of the buffer.
+ * Read the rest of the buffer from bluetooth and throw it away.
  */
-void read_rest_of_buffer() {
+void throw_bt_buffer() {
     while (BT_PORT.available()) {
         BT_PORT.read();
     }
@@ -147,8 +149,10 @@ void verify_architecture() {
  * Send data from VESC to the client.
  */
 void send_metrics_data() {
-    static unsigned long lastTime = 0;
-    if (millis() - lastTime < METRICS_UPDATE_DELAY) return;
+    static unsigned long lastTimeMetricsUpdated = 0;
+    if (millis() - lastTimeMetricsUpdated < METRICS_UPDATE_DELAY) return;
+
+    lastTimeMetricsUpdated = millis();
 
     if (VESC.getVescValues()) {
         // Correct vesc values for current motor poles and phases
@@ -195,6 +199,7 @@ void send_metrics_data() {
 
         // Send the byte array
         BT_PORT.write((const uint8_t *)byteArray, vescDataSize + 3);
+        BT_PORT.flush();
     }
 }
 
@@ -215,16 +220,16 @@ void parse_received_data() {
             BT_PORT.readBytes(packet + 2, payloadLen);
         }
         if (crc != crc8(packet, payloadLen + 2)) {
-            read_rest_of_buffer();
-            debug_message("Wrong message crc value (message 0x%02X, calculated 0x%02X)", crc, crc8(packet, payloadLen + 2));
+            throw_bt_buffer();
+            debug_message("Message received: CRC mismatch (message 0x%02X, calculated 0x%02X)", crc, crc8(packet, payloadLen + 2));
             delete[] packet;
             return;
         }
 
         // Check source node
         if (!IS_SLAVE(flags)) {
-            read_rest_of_buffer();
-            debug_message("Wrong message source node (flags 0x%02X)", flags);
+            throw_bt_buffer();
+            debug_message("Message received: Invalid source node (flags 0x%02X)", flags);
             delete[] packet;
             return;
         }
@@ -233,16 +238,16 @@ void parse_received_data() {
 
         switch (GET_COMMAND(flags)) {
             case TEST_FLAG:
-                debug_message("Test message recieved");
+                debug_message("Message received: Test message received");
                 break;
             case METRICS_FLAG:
-                debug_message("Metrics message recieved");
+                debug_message("Message received: Metrics message received");
                 break;
             case CONTROL_FLAG:
                 if (IS_REQUEST(flags)) {
                     if (payloadLen != 2) {
-                        read_rest_of_buffer();
-                        debug_message("Wrong control payload");
+                        throw_bt_buffer();
+                        debug_message("Message received: Invalid control payload");
                         delete[] packet;
                         return;
                     }
@@ -251,13 +256,13 @@ void parse_received_data() {
                     lastTimeValidControlReceived = millis();
 
                     // converting direction from char to false/true (forward/reverse)
-                    bool direction = payload[0] != 0;
+                    bool reverse = payload[0] != 0;
                     // converting current value from char to -100/100
                     int8_t current = payload[1];
 
                     // calculate current and send to vesc
                     if (current > 0) {
-                        if (direction) { // reverse
+                        if (reverse) { // reverse
                             VESC.setCurrent(-current * MAX_THROTTLE_POWER / 100);
                         } else { // forward
                             VESC.setCurrent(current * MAX_THROTTLE_POWER / 100);
@@ -273,18 +278,21 @@ void parse_received_data() {
                 if (IS_REQUEST(flags)) {
                     bool success = parse_config_data(payload, payloadLen);
                     if (!success) {
-                        read_rest_of_buffer();
-                        debug_message("Wrong config payload");
+                        throw_bt_buffer();
+                        debug_message("Message received: Invalid config payload");
                         delete[] packet;
                         return;
                     }
                 }
                 break;
             default:
-                debug_message("Wrong message command");
+                throw_bt_buffer();
+                debug_message("Message received: Invalid message command");
                 delete[] packet;
                 return;
         }
+
+        //debug_message("Message received: OK, millis %lu", millis());
 
         delete[] packet;
     } else {
@@ -304,7 +312,7 @@ bool parse_config_data(uint8_t* payload, uint8_t payloadLen) {
     // check if payload is not empty and reopens preferences for writing
     if (payloadLen != 0) {
         preferences.end();
-        preferences.begin(PROJECT_NAME, RW_MODE);
+        preferences.begin(SERVER_PROJECT_NAME, RW_MODE);
 
         while (payloadIndex < payloadLen && !error) {
             uint8_t config = payload[payloadIndex++];
@@ -349,7 +357,7 @@ bool parse_config_data(uint8_t* payload, uint8_t payloadLen) {
 
         // close preferences for writing and reopen for reading
         preferences.end();
-        preferences.begin(PROJECT_NAME, RO_MODE);
+        preferences.begin(SERVER_PROJECT_NAME, RO_MODE);
     }
 
     return !error;
@@ -367,3 +375,5 @@ void update_lights() {
         ledcWrite(REAR_LIGHT_CHANNEL, 0);
     }
 }
+
+#endif // UPLOAD_BOARD
