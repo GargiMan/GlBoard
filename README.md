@@ -43,3 +43,12 @@ CRC byte of message is CRC8 checksum for data transfer error detection.
 | 001   | Metrics   | Metrics data    |
 | 010   | Control   | Control data    |
 | 011   | Settings  | Settings data   |
+
+### References
+
+https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf
+https://docs.espressif.com/projects/arduino-esp32/en/latest/api/gpio.html
+https://docs.espressif.com/projects/arduino-esp32/en/latest/api/bluetooth.html
+https://docs.espressif.com/projects/arduino-esp32/en/latest/api/preferences.html
+https://docs.espressif.com/projects/arduino-esp32/en/latest/api/ledc.html
+https://github.com/vedderb/bldc
