@@ -5,8 +5,9 @@
 //------------SETTINGS-------------//
 //---------------------------------//
 
-#define PROJECT_NAME "GlBoard" // Project name
-#define PROJECT_VERSION "2.0"  // Project version
+#define SERVER_PROJECT_NAME "GlBoard"   // Project server name
+#define CLIENT_PROJECT_NAME "GlControl" // Project client name
+#define PROJECT_VERSION "2.0"           // Project version
 
 // debug options , comment for no debug output
 #define DEBUG 1       // Default debug info
@@ -14,7 +15,7 @@
 
 #define PORT_SPEED 115200 // Default esp and vesc baud rate
 
-#define METRICS_UPDATE_DELAY 500 // Minimum delay between metrics update in ms
+#define METRICS_UPDATE_DELAY 200 // Minimum delay between metrics update in ms
 
 #define CONTROL_TIMEOUT 2000 // Timeout for control message in ms
 
@@ -22,8 +23,10 @@
 //------------BLUETOOTH------------//
 //---------------------------------//
 
-#define BT_PORT SerialBT       // Bluetooth port
-#define BT_DEVICE PROJECT_NAME // Bluetooth device name
+#define BT_PORT SerialBT                     // Bluetooth port
+#define BT_SERVER_DEVICE SERVER_PROJECT_NAME // Bluetooth server device name
+#define BT_CLIENT_DEVICE CLIENT_PROJECT_NAME // Bluetooth client device name
+#define BT_PIN "1234"                        // Bluetooth pin
 
 //---------------------------------//
 //-----COMMUNICATION-PROTOCOL------//
@@ -86,6 +89,27 @@
 // motor settings
 #define MOTOR_POLES 12 
 #define MOTOR_PHASES 3
+
+//---------------------------------//
+//-----------CONTROLLER------------//
+//---------------------------------//
+
+// control pins
+#define HOLD_POWER_BUTTON_PIN 15
+#define MODE_SWITCH_BUTTON_PIN 13
+#define FRONT_LIGHT_BUTTON_PIN 16
+#define REAR_LIGHT_BUTTON_PIN 17
+#define DIRECTION_SWITCH_BUTTON_PIN 4
+#define POWER_JOYSTICK_PIN 32
+
+// control settings
+#define JOYSTICK_DEADZONE 0.3
+#define BUTTON_DEBOUNCE_TIME 200  // 200ms
+#define BUTTON_HOLD_TIME 1000     // 1s
+
+// sleep settings
+#define WAKEUP_BUTTON_PIN HOLD_POWER_BUTTON_PIN
+#define SLEEP_TIMEOUT 30000 // 30s
 
 //---------------------------------//
 //-----------PREFERENCES-----------//
