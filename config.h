@@ -9,7 +9,7 @@
 #define CLIENT_PROJECT_NAME "GlControl" // Project client name
 #define PROJECT_VERSION "2.0"           // Project version
 
-// debug options , comment for no debug output
+// debug options, comment for no debug output
 #define DEBUG 1       // Default debug info
 //#define VESC_DEBUG 1  // Vesc debug info
 
