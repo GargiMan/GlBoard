@@ -329,7 +329,7 @@ void read_inputs() {
 
     // read direction button
     static unsigned long lastTimeDirectionSwitchButtonPressed = 0;
-    if (pinReadGPIO(DIRECTION_SWITCH_BUTTON_PIN) && millis() - lastTimeDirectionSwitchButtonPressed > BUTTON_HOLD_TIME) {
+    if (pinReadGPIO(DIRECTION_SWITCH_BUTTON_PIN) && millis() - lastTimeDirectionSwitchButtonPressed > BUTTON_HOLD_TIME && !hold) {
         lastTimeDirectionSwitchButtonPressed = millis();
         reverse = !reverse;
         debug_message("Direction switch button pressed");
