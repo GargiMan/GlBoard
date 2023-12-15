@@ -233,3 +233,52 @@ void pinWriteDAC(int pin, uint32_t value) {
         return;
     }
 }
+
+int pinPWMChannel[34];
+bool pinPWMHighSpeed[34];
+
+bool isPWM(int pin) {
+    return pin == 2 || pin == 4 || pin == 5 || pin == 12 || pin == 13 || pin == 14 || pin == 15 || pin == 16 || pin == 17 || pin == 18 || pin == 19 || pin == 21 || pin == 22 || pin == 23 || pin == 25 || pin == 26 || pin == 27 || pin == 32 || pin == 33;
+}
+
+void pinSetupPWM(int pin, int channel, int timer, int frequency, int resolution, bool highSpeed) {
+    // Check if pin is valid PWM pin
+    if (!isPWM(pin)) {
+        return;
+    }
+
+    // Check if channel is valid (0-15 for ESP32)
+    if (channel < 0 || channel > 15) {
+        return;
+    }
+
+    // Configure the PWM
+    ledc_timer_config_t ledc_timer;
+    ledc_timer.duty_resolution = resolution;
+    ledc_timer.freq_hz = frequency;
+    ledc_timer.speed_mode = highSpeed ? LEDC_HIGH_SPEED_MODE : LEDC_LOW_SPEED_MODE;
+    ledc_timer.timer_num = timer;
+    ledc_timer_config(&ledc_timer);
+
+    ledc_channel_config_t ledc_channel;
+    ledc_channel.channel = channel;
+    ledc_channel.duty = 0;
+    ledc_channel.gpio_num = pin;
+    ledc_channel.speed_mode = highSpeed ? LEDC_HIGH_SPEED_MODE : LEDC_LOW_SPEED_MODE;
+    ledc_channel.hpoint = 0;
+    ledc_channel.timer_sel = timer;
+    ledc_channel_config(&ledc_channel);
+
+    pinPWMChannel[pin] = channel;
+    pinPWMHighSpeed[pin] = highSpeed;
+}
+
+void pinWritePWM(int pin, uint32_t value) {
+    // Check if pin is valid PWM pin
+    if (!isPWM(pin)) {
+        return;
+    }
+
+    ledc_set_duty(pinPWMHighSpeed[pin] ? LEDC_HIGH_SPEED_MODE : LEDC_LOW_SPEED_MODE, pinPWMChannel[pin], value);
+    ledc_update_duty(pinPWMHighSpeed[pin] ? LEDC_HIGH_SPEED_MODE : LEDC_LOW_SPEED_MODE, pinPWMChannel[pin]);
+}
