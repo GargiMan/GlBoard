@@ -8,13 +8,13 @@ LOGIN := xgerge01
 all: pdf
 
 pdf:
-	pandoc -V geometry:margin=1in README.md -o README.pdf
+	pandoc -V geometry:margin=1in README.md -o documentation.pdf
 
 clean:
-	rm -rf $(LOGIN).zip $(LOGIN).tar README.pdf
+	rm -rf $(LOGIN).zip $(LOGIN).tar documentation.pdf
 
 zip: pdf
-	zip -r $(LOGIN).zip LICENSE README* Makefile src config.h GlBoard.ino
+	zip -r $(LOGIN).zip LICENSE README* documentation.pdf Makefile src config.h GlBoard.ino GlControl.ino
 
 tar: pdf
-	tar -cf $(LOGIN).tar LICENSE README* Makefile src config.h GlBoard.ino
+	tar -cf $(LOGIN).tar LICENSE README* documentation.pdf Makefile src config.h GlBoard.ino GlControl.ino
