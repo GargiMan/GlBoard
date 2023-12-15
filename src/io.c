@@ -44,7 +44,7 @@ void pinWriteGPIO(int pin, bool value) {
     gpio_set_level(pin, value ? 1 : 0);
 }
 
-adc_bits_width_t channelResolution[10];
+adc_bits_width_t adc2channelResolution[10];
 
 bool isADC1(int pin) {
     return pin == 36 || pin == 39 || pin == 32 || pin == 33 || pin == 34 || pin == 35;
@@ -100,34 +100,6 @@ int getADC2Channel(int pin) {
     }
 }
 
-int getADC2Pin(int channel) {
-    switch (channel) {
-        case ADC2_CHANNEL_0:
-            return 4;
-        case ADC2_CHANNEL_1:
-            return 0;
-        case ADC2_CHANNEL_2:
-            return 2;
-        case ADC2_CHANNEL_3:
-            return 15;
-        case ADC2_CHANNEL_4:
-            return 13;
-        case ADC2_CHANNEL_5:
-            return 12;
-        case ADC2_CHANNEL_6:
-            return 14;
-        case ADC2_CHANNEL_7:
-            return 27;
-        case ADC2_CHANNEL_8:
-            return 25;
-        case ADC2_CHANNEL_9:
-            return 26;
-        default:
-            return -1;
-    }
-
-}
-
 void pinSetupADC1(int channel, int resolution, adc_atten_t attenuation) {
     // Configure the ADC1
     adc1_config_width(resolution);
@@ -138,34 +110,34 @@ void pinSetupADC2(int channel, int resolution, adc_atten_t attenuation) {
     // Configure the ADC2
     switch (channel) {
         case ADC2_CHANNEL_0:
-            channelResolution[0] = resolution;
+            adc2channelResolution[0] = resolution;
             break;
         case ADC2_CHANNEL_1:
-            channelResolution[1] = resolution;
+            adc2channelResolution[1] = resolution;
             break;
         case ADC2_CHANNEL_2:
-            channelResolution[2] = resolution;
+            adc2channelResolution[2] = resolution;
             break;
         case ADC2_CHANNEL_3:
-            channelResolution[3] = resolution;
+            adc2channelResolution[3] = resolution;
             break;
         case ADC2_CHANNEL_4:
-            channelResolution[4] = resolution;
+            adc2channelResolution[4] = resolution;
             break;
         case ADC2_CHANNEL_5:
-            channelResolution[5] = resolution;
+            adc2channelResolution[5] = resolution;
             break;
         case ADC2_CHANNEL_6:
-            channelResolution[6] = resolution;
+            adc2channelResolution[6] = resolution;
             break;
         case ADC2_CHANNEL_7:
-            channelResolution[7] = resolution;
+            adc2channelResolution[7] = resolution;
             break;
         case ADC2_CHANNEL_8:
-            channelResolution[8] = resolution;
+            adc2channelResolution[8] = resolution;
             break;
         case ADC2_CHANNEL_9:
-            channelResolution[9] = resolution;
+            adc2channelResolution[9] = resolution;
             break;
         default:
             return;
@@ -192,7 +164,7 @@ uint32_t pinReadADC2(int channel) {
         return 0;
     }
     int raw_value;
-    adc2_get_raw(channel, channelResolution[channel], &raw_value);
+    adc2_get_raw(channel, adc2channelResolution[channel], &raw_value);
     return raw_value;
 }
 

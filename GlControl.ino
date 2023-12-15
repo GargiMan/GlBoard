@@ -14,8 +14,8 @@
 #include "config.h"
 #include "src/io.h"
 #include "src/crc8.h"
+#include <Arduino.h>
 #include <BluetoothSerial.h>
-#include <driver/adc.h>
 
 BluetoothSerial BT_PORT;
 
@@ -59,9 +59,6 @@ void setup() {
     pinSetupGPIO(DIRECTION_SWITCH_BUTTON_PIN, INPUT_PULLDOWN);
     pinSetupADC(POWER_JOYSTICK_PIN, ADC_WIDTH_BIT_10, ADC_ATTEN_DB_11);
     debug_message("GPIO ready");
-
-    // sleep setup
-    esp_sleep_enable_ext1_wakeup((1 << WAKEUP_BUTTON_PIN), ESP_EXT1_WAKEUP_ANY_HIGH);
 
     // bluetooth connection
     BT_PORT.connect(BT_SERVER_DEVICE); // auto connect to server
