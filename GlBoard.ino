@@ -22,7 +22,6 @@ VescUart VESC;
 BluetoothSerial BT_PORT;
 Preferences preferences;
 
-bool hasClient = false;
 int maxLightPower = pow(2, PWM_RESOLUTION) - 1;
 
 void debug_message(const char *fmt, ...);
@@ -87,6 +86,7 @@ void setup() {
 void loop() {
 
     // update bluetooth connection status
+    static bool hasClient = false;
     if (hasClient != BT_PORT.hasClient()) {
         hasClient = BT_PORT.hasClient();
         debug_message("Client %s", hasClient ? "connected" : "disconnected");
