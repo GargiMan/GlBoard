@@ -19,9 +19,6 @@
 
 BluetoothSerial BT_PORT;
 
-bool isConnected = false;
-
-uint8_t lastPower = 0;
 uint8_t power = 0;
 bool reverse = false;
 bool hold = false;
@@ -30,12 +27,6 @@ bool rearLight = false;
 bool mode = false;
 int modeThrottle = MAX_THROTTLE_POWER;
 int modeBrake = MAX_BRAKE_POWER;
-
-unsigned long lastTimeFrontLightButtonPressed = 0;
-unsigned long lastTimeRearLightButtonPressed = 0;
-unsigned long lastTimeHoldButtonPressed = 0;
-unsigned long lastTimeDirectionSwitchButtonPressed = 0;
-unsigned long lastTimeModeSwitchButtonPressed = 0;
 
 void debug_message(const char *fmt, ...);
 void throw_bt_buffer();
@@ -80,6 +71,7 @@ void setup() {
 void loop() {
 
     // update bluetooth connection status
+    static bool isConnected = false;
     if (isConnected != BT_PORT.connected()) {
         isConnected = BT_PORT.connected();
         debug_message("Server %s", isConnected ? "connected" : "disconnected");
@@ -92,6 +84,7 @@ void loop() {
         read_inputs();
 
         // send control data
+        static uint8_t lastPower = 0;
         if (power != 0 || lastPower != power) {
             lastPower = power;
             send_control_data();
@@ -276,7 +269,7 @@ void send_config_data() {
 
 void read_inputs() {
     // read hold power button
-
+    static unsigned long lastTimeHoldButtonPressed = 0;
     if (pinReadGPIO(HOLD_POWER_BUTTON_PIN)) {
         lastTimeHoldButtonPressed = millis();
         hold = true;
@@ -286,6 +279,7 @@ void read_inputs() {
     }
 
     // read front light button
+    static unsigned long lastTimeFrontLightButtonPressed = 0;
     if (pinReadGPIO(FRONT_LIGHT_BUTTON_PIN) && millis() - lastTimeFrontLightButtonPressed > BUTTON_HOLD_TIME) {
         lastTimeFrontLightButtonPressed = millis();
         frontLight = true;
@@ -293,6 +287,7 @@ void read_inputs() {
     }
 
     // read rear light button
+    static unsigned long lastTimeRearLightButtonPressed = 0;
     if (pinReadGPIO(REAR_LIGHT_BUTTON_PIN) && millis() - lastTimeRearLightButtonPressed > BUTTON_HOLD_TIME) {
         lastTimeRearLightButtonPressed = millis();
         rearLight = true;
@@ -300,6 +295,7 @@ void read_inputs() {
     }
 
     // read mode button
+    static unsigned long lastTimeModeSwitchButtonPressed = 0;
     if (pinReadGPIO(MODE_SWITCH_BUTTON_PIN) && millis() - lastTimeModeSwitchButtonPressed > BUTTON_HOLD_TIME) {
         lastTimeModeSwitchButtonPressed = millis();
         mode = true;
@@ -335,6 +331,7 @@ void read_inputs() {
     }
 
     // read direction button
+    static unsigned long lastTimeDirectionSwitchButtonPressed = 0;
     if (pinReadGPIO(DIRECTION_SWITCH_BUTTON_PIN) && millis() - lastTimeDirectionSwitchButtonPressed > BUTTON_HOLD_TIME) {
         lastTimeDirectionSwitchButtonPressed = millis();
         reverse = !reverse;
