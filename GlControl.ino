@@ -14,7 +14,6 @@
 #include "config.h"
 #include "src/io.h"
 #include "src/crc8.h"
-#include <Arduino.h>
 #include <BluetoothSerial.h>
 
 BluetoothSerial BT_PORT;
