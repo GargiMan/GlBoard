@@ -22,6 +22,7 @@ VescUart VESC;
 BluetoothSerial BT_PORT;
 Preferences preferences;
 
+bool braking = false;
 int maxLightPower = pow(2, PWM_RESOLUTION) - 1;
 
 void debug_message(const char *fmt, ...);
@@ -78,8 +79,8 @@ void setup() {
 
     // pin setup
     pinSetupGPIO(LED_ONBOARD_PIN, OUTPUT);
-    pinSetupPWM(FRONT_LIGHT_PIN, 1, 0, PWM_FREQUENCY, PWM_RESOLUTION, false);
-    pinSetupPWM(REAR_LIGHT_PIN, 2, 1, PWM_FREQUENCY, PWM_RESOLUTION, false);
+    pinSetupPWM(FRONT_LIGHT_PIN, 0, 0, PWM_FREQUENCY, PWM_RESOLUTION, false);
+    pinSetupPWM(REAR_LIGHT_PIN, 1, 1, PWM_FREQUENCY, PWM_RESOLUTION, false);
     debug_message("GPIO ready");
 }
 
@@ -91,6 +92,19 @@ void loop() {
         hasClient = BT_PORT.hasClient();
         debug_message("Client %s", hasClient ? "connected" : "disconnected");
         digitalWrite(LED_ONBOARD_PIN, BT_PORT.hasClient() ? true : false);
+
+        // blink front light when client connects
+        if (hasClient) {
+            pinWritePWM(FRONT_LIGHT_PIN, 0);
+            delay(50);
+            pinWritePWM(FRONT_LIGHT_PIN, maxLightPower * preferences.getFloat(KEY_FRONT_LIGHT_POWER));
+            delay(50);
+            pinWritePWM(FRONT_LIGHT_PIN, 0);
+            delay(50);
+            pinWritePWM(FRONT_LIGHT_PIN, maxLightPower * preferences.getFloat(KEY_FRONT_LIGHT_POWER));
+            delay(50);
+            pinWritePWM(FRONT_LIGHT_PIN, 0);
+        }
     }
 
     // Check if client is connected
@@ -261,14 +275,17 @@ void parse_received_data() {
 
                     // calculate current and send to vesc
                     if (current > 0) {
+                        braking = false;
                         if (reverse) { // reverse
                             VESC.setCurrent(-current * MAX_THROTTLE_POWER / 100);
                         } else { // forward
                             VESC.setCurrent(current * MAX_THROTTLE_POWER / 100);
                         }
                     } else if (current < 0) {
+                        braking = true;
                         VESC.setBrakeCurrent(abs(current) * MAX_BRAKE_POWER / 100);
                     } else {
+                        braking = false;
                         VESC.setCurrent(0);
                     }
                 }
@@ -298,6 +315,7 @@ void parse_received_data() {
         // reset current if no control message received for a while
         if (resetCurrent) {
             if (millis() - lastTimeValidControlReceived > CONTROL_TIMEOUT) {
+                braking = false;
                 VESC.setCurrent(0);
             }
         }
@@ -369,7 +387,11 @@ void update_lights() {
         pinWritePWM(FRONT_LIGHT_PIN, 0);
     }
     if (preferences.getBool(KEY_REAR_LIGHT_ENABLED)) {
-        pinWritePWM(REAR_LIGHT_PIN, maxLightPower * preferences.getFloat(KEY_REAR_LIGHT_POWER));
+        if (braking) {
+            pinWritePWM(REAR_LIGHT_PIN, maxLightPower);
+        } else {
+            pinWritePWM(REAR_LIGHT_PIN, maxLightPower * preferences.getFloat(KEY_REAR_LIGHT_POWER));
+        }
     } else {
         pinWritePWM(REAR_LIGHT_PIN, 0);
     }

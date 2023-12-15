@@ -258,6 +258,7 @@ void pinSetupPWM(int pin, int channel, int timer, int frequency, int resolution,
     ledc_timer.freq_hz = frequency;
     ledc_timer.speed_mode = highSpeed ? LEDC_HIGH_SPEED_MODE : LEDC_LOW_SPEED_MODE;
     ledc_timer.timer_num = timer;
+    ledc_timer.clk_cfg = LEDC_AUTO_CLK;
     ledc_timer_config(&ledc_timer);
 
     ledc_channel_config_t ledc_channel;
