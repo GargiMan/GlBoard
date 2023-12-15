@@ -12,6 +12,7 @@
 #ifdef UPLOAD_CONTROL
 
 #include "config.h"
+#include "src/io.h"
 #include "src/crc8.h"
 #include <BluetoothSerial.h>
 #include <driver/adc.h>
@@ -60,14 +61,12 @@ void setup() {
     debug_message("Bluetooth ready (%s)", BT_CLIENT_DEVICE);
 
     // pin setup
-    pinMode(LED_ONBOARD_PIN, OUTPUT);
-    pinMode(HOLD_POWER_BUTTON_PIN, INPUT_PULLDOWN);
-    pinMode(FRONT_LIGHT_BUTTON_PIN, INPUT_PULLDOWN);
-    pinMode(REAR_LIGHT_BUTTON_PIN, INPUT_PULLDOWN);
-    pinMode(DIRECTION_SWITCH_BUTTON_PIN, INPUT_PULLDOWN);
-    pinMode(POWER_JOYSTICK_PIN, INPUT_PULLDOWN);
-    adc1_config_width(ADC_WIDTH_BIT_10);
-    adc1_config_channel_atten(ADC1_CHANNEL_4, ADC_ATTEN_DB_11);
+    pinSetupGPIO(LED_ONBOARD_PIN, OUTPUT);
+    pinSetupGPIO(HOLD_POWER_BUTTON_PIN, INPUT_PULLDOWN);
+    pinSetupGPIO(FRONT_LIGHT_BUTTON_PIN, INPUT_PULLDOWN);
+    pinSetupGPIO(REAR_LIGHT_BUTTON_PIN, INPUT_PULLDOWN);
+    pinSetupGPIO(DIRECTION_SWITCH_BUTTON_PIN, INPUT_PULLDOWN);
+    pinSetupADC(POWER_JOYSTICK_PIN, ADC_WIDTH_BIT_10, ADC_ATTEN_DB_11);
     debug_message("GPIO ready");
 
     // sleep setup
@@ -84,7 +83,7 @@ void loop() {
     if (isConnected != BT_PORT.connected()) {
         isConnected = BT_PORT.connected();
         debug_message("Server %s", isConnected ? "connected" : "disconnected");
-        digitalWrite(LED_ONBOARD_PIN, BT_PORT.connected() ? HIGH : LOW);
+        pinWriteGPIO(LED_ONBOARD_PIN, BT_PORT.connected() ? true : false);
     }
 
     // Check if server is connected
@@ -277,30 +276,31 @@ void send_config_data() {
 
 void read_inputs() {
     // read hold power button
-    if (digitalRead(HOLD_POWER_BUTTON_PIN) == HIGH) {
+
+    if (pinReadGPIO(HOLD_POWER_BUTTON_PIN)) {
         lastTimeHoldButtonPressed = millis();
         hold = true;
         debug_message("Hold button pressed");
-    } else if (hold && digitalRead(HOLD_POWER_BUTTON_PIN) == LOW && millis() - lastTimeHoldButtonPressed > BUTTON_DEBOUNCE_TIME) {
+    } else if (hold && !pinReadGPIO(HOLD_POWER_BUTTON_PIN) && millis() - lastTimeHoldButtonPressed > BUTTON_DEBOUNCE_TIME) {
         hold = false;
     }
 
     // read front light button
-    if (digitalRead(FRONT_LIGHT_BUTTON_PIN) == HIGH && millis() - lastTimeFrontLightButtonPressed > BUTTON_HOLD_TIME) {
+    if (pinReadGPIO(FRONT_LIGHT_BUTTON_PIN) && millis() - lastTimeFrontLightButtonPressed > BUTTON_HOLD_TIME) {
         lastTimeFrontLightButtonPressed = millis();
         frontLight = true;
         debug_message("Front light button pressed");
     }
 
     // read rear light button
-    if (digitalRead(REAR_LIGHT_BUTTON_PIN) == HIGH && millis() - lastTimeRearLightButtonPressed > BUTTON_HOLD_TIME) {
+    if (pinReadGPIO(REAR_LIGHT_BUTTON_PIN) && millis() - lastTimeRearLightButtonPressed > BUTTON_HOLD_TIME) {
         lastTimeRearLightButtonPressed = millis();
         rearLight = true;
         debug_message("Rear light button pressed");
     }
 
     // read mode button
-    if (digitalRead(MODE_SWITCH_BUTTON_PIN) == HIGH && millis() - lastTimeModeSwitchButtonPressed > BUTTON_HOLD_TIME) {
+    if (pinReadGPIO(MODE_SWITCH_BUTTON_PIN) && millis() - lastTimeModeSwitchButtonPressed > BUTTON_HOLD_TIME) {
         lastTimeModeSwitchButtonPressed = millis();
         mode = true;
         switch (modeThrottle) {
@@ -335,7 +335,7 @@ void read_inputs() {
     }
 
     // read direction button
-    if (digitalRead(DIRECTION_SWITCH_BUTTON_PIN) == HIGH && millis() - lastTimeDirectionSwitchButtonPressed > BUTTON_HOLD_TIME) {
+    if (pinReadGPIO(DIRECTION_SWITCH_BUTTON_PIN) && millis() - lastTimeDirectionSwitchButtonPressed > BUTTON_HOLD_TIME) {
         lastTimeDirectionSwitchButtonPressed = millis();
         reverse = !reverse;
         debug_message("Direction switch button pressed");
@@ -343,7 +343,7 @@ void read_inputs() {
 
     // read power joystick
     if (!hold) {
-        int joystick = adc1_get_raw(ADC1_CHANNEL_4) / 4;    // analog read with 10 bit resolution, divide by 4 to get 8 bit resolution
+        int joystick = pinReadADC(POWER_JOYSTICK_PIN) / 4;    // analog read with 10 bit resolution, divide by 4 to get 8 bit resolution
         if (joystick < (uint8_t)(127.0 * (1.0 - JOYSTICK_DEADZONE))) {
             power = 255 - abs((float)(joystick - 127.0) / 127.0 * 100.0);
         } else if (joystick > (uint8_t)(127.0 * (1.0 + JOYSTICK_DEADZONE))) {

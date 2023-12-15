@@ -74,10 +74,8 @@
 // lights settings
 #define PWM_FREQUENCY 5000          //PWM frequency
 #define PWM_RESOLUTION 8            //PWM resolution
-#define FRONT_LIGHT_CHANNEL 1       //Front light pwm channel
 #define FRONT_LIGHT_PIN 4           //Front light pin
 #define FRONT_LIGHT_POWER 1.0       //Front light default power (0.0 - 1.0)
-#define REAR_LIGHT_CHANNEL 2        //Rear light pwm channel
 #define REAR_LIGHT_PIN 15           //Rear light pin
 #define REAR_LIGHT_POWER 0.4        //Rear light default power (0.0 - 1.0)
 #define LED_ONBOARD_PIN 2

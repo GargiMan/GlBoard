@@ -12,6 +12,7 @@
 #ifdef UPLOAD_BOARD
 
 #include "config.h"
+#include "src/io.h"
 #include "src/crc8.h"
 #include "src/VescUart.h"
 #include <BluetoothSerial.h>
@@ -77,11 +78,9 @@ void setup() {
     debug_message("Bluetooth ready (%s)", BT_SERVER_DEVICE);
 
     // pin setup
-    pinMode(LED_ONBOARD_PIN, OUTPUT);
-    ledcSetup(FRONT_LIGHT_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
-    ledcAttachPin(FRONT_LIGHT_PIN, FRONT_LIGHT_CHANNEL);
-    ledcSetup(REAR_LIGHT_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
-    ledcAttachPin(REAR_LIGHT_PIN, REAR_LIGHT_CHANNEL);
+    pinSetupGPIO(LED_ONBOARD_PIN, OUTPUT);
+    pinSetupPWM(FRONT_LIGHT_PIN, 1, 0, PWM_FREQUENCY, PWM_RESOLUTION, false);
+    pinSetupPWM(REAR_LIGHT_PIN, 2, 1, PWM_FREQUENCY, PWM_RESOLUTION, false);
     debug_message("GPIO ready");
 }
 
@@ -91,7 +90,7 @@ void loop() {
     if (hasClient != BT_PORT.hasClient()) {
         hasClient = BT_PORT.hasClient();
         debug_message("Client %s", hasClient ? "connected" : "disconnected");
-        digitalWrite(LED_ONBOARD_PIN, BT_PORT.hasClient() ? HIGH : LOW);
+        digitalWrite(LED_ONBOARD_PIN, BT_PORT.hasClient() ? true : false);
     }
 
     // Check if client is connected
@@ -365,14 +364,14 @@ bool parse_config_data(uint8_t* payload, uint8_t payloadLen) {
 
 void update_lights() {
     if (preferences.getBool(KEY_FRONT_LIGHT_ENABLED)) {
-        ledcWrite(FRONT_LIGHT_CHANNEL, maxLightPower * preferences.getFloat(KEY_FRONT_LIGHT_POWER));
+        pinWritePWM(FRONT_LIGHT_PIN, maxLightPower * preferences.getFloat(KEY_FRONT_LIGHT_POWER));
     } else {
-        ledcWrite(FRONT_LIGHT_CHANNEL, 0);
+        pinWritePWM(FRONT_LIGHT_PIN, 0);
     }
     if (preferences.getBool(KEY_REAR_LIGHT_ENABLED)) {
-        ledcWrite(REAR_LIGHT_CHANNEL, maxLightPower * preferences.getFloat(KEY_REAR_LIGHT_POWER));
+        pinWritePWM(REAR_LIGHT_PIN, maxLightPower * preferences.getFloat(KEY_REAR_LIGHT_POWER));
     } else {
-        ledcWrite(REAR_LIGHT_CHANNEL, 0);
+        pinWritePWM(REAR_LIGHT_PIN, 0);
     }
 }
 
