@@ -2,7 +2,7 @@
  * crc8.c
  *
  *  Created on: 12 dec 2023
- *      Author: Marek Gergel (xgerge01)
+ *      Author: Marek Gergel
  */
 
 #include "crc8.h"
