@@ -15,6 +15,7 @@
 #include "src/io.h"
 #include "src/crc8.h"
 #include "src/VescUart.h"
+#include <Arduino.h>
 #include <BluetoothSerial.h>
 #include <Preferences.h>
 
