@@ -262,22 +262,3 @@ ESP32 Arduino library: https://github.com/espressif/arduino-esp32
 VESC Tool: https://vesc-project.com/vesc_tool  
 VESC firmware library: https://github.com/vedderb/bldc  
 VESC UART wrapper library: https://github.com/SolidGeek/VescUart
-
-# 5. Project auto evaluation and summary
-
-**(E) Approach:** 0.8 / 1  
-**(F) Functionality:** 4.5 / 5  
-**(Q) Quality:** 2.5 / 3  
-**(P) Presentation:** 0.8 / 1  
-**(D) Documentation:** 2 / 4  
-
-**Score summary:** (0.25 + 0.75 * F / 5) * (E + F + Q + P + D) = 9.8 / 14
-
-# Summary
-
-Project was successfully implemented and tested with custom controller and mobile phone.  
-Due to lack of time, gyro sensor was not implemented and Bluetooth library was not implemented with ESP-IDF.  
-
-**Known issues:**  
-- Bluetooth connection SSP mode is not working properly  
-- Usage of Arduino libraries reduce functionality adjustments of Bluetooth and UART communication  
